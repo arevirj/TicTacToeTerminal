@@ -18,8 +18,8 @@ grid: dict[int, str] = {
 
 player_wins: list = []
 cpu_wins: list = []
-start: int = input("Welcome to Terminal Tic-Tac-Toe. As the player, you are the Spade. The CPU is the Diamond. "
-                   "To start the game, enter 1")
+start: int = int(input("Welcome to Terminal Tic-Tac-Toe. As the player, you are the Spade. The CPU is the Diamond. "
+                        "To start the game, enter 1: "))
 cpu_list: list = [1, 2, 3, 4, 5, 6, 7, 8, 9]
 wins: list = [[1, 2, 3], [4, 5, 6], [7, 8, 9], [1, 4, 7], [2, 5, 8], [3, 6, 9], [1, 5, 9], [3, 5, 7]]
 
@@ -78,6 +78,7 @@ def main() -> None:
     win = False
     i: int = 0
     turn = []
+    print(grid_string())
     while win is False and i < 10:
         if i == 9:
             break
@@ -89,13 +90,13 @@ def main() -> None:
             cpu_turn(grid)
             turn = cpu_wins
             first_turn = 0
-        if turn == player_wins:
-            print(grid_string())
-        if turn == cpu_wins and i ==1:
-            print(grid_string())
+        print("------------")
+        print(grid_string())
+        if turn == cpu_wins:
+            print("CPU Move")
         win = win_condition(turn)
         i += 1
-    if win is True or i>=9:
+    if win is True or i >= 9:
         if i == 9 and win_condition is False:
             print("Tie!")
         elif turn == player_wins:
