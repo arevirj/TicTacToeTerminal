@@ -40,6 +40,7 @@ def player_turn(grid):
         player_wins.append(move)
         cpu_list.remove(move)
 
+
 def grid_string():
     thing = f"{grid[1]} {grid[2]} {grid[3]}\n" \
             f"{grid[4]} {grid[5]} {grid[6]}\n" \
@@ -58,18 +59,21 @@ def win_condition(turn: list) -> bool:
     for condition in wins:
         count = 0
         j = 0
+        temp: list = []
         for number in condition:
             found = False
             while j < len(turn):
                 if np.sort(turn)[j] == number:
                     count += 1
+                    temp.append(number)
                     found = True
                     break
                 j += 1
             if found is False:
                 break
         if count == 3:
-           return True
+            print(temp)
+            return True
     return False
 
 
@@ -96,16 +100,13 @@ def main() -> None:
             print("CPU Move")
         win = win_condition(turn)
         i += 1
-    if win is True or i >= 9:
-        if i == 9 and win_condition is False:
-            print("Tie!")
-        elif turn == player_wins:
-            print("You Won! Congrats.")
-        else:
-            print("Sorry, better luck next time.")
+    if i >= 9 and win is False:
+        print("Tie!")
+    elif turn == player_wins:
+        print("You Won! Congrats.")
+    else:
+        print("Sorry, better luck next time.")
 
 
 if __name__ == '__main__':
     main()
-
-
