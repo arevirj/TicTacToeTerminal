@@ -1,6 +1,6 @@
 """MAKING TIC TAC TOE BUT LAME!"""
-from typing import Optional
 import numpy as np
+import copy
 EMPTY: str = "\U00002B1C"
 DIAMOND: str = "\U00002665"
 SPADE: str = "\U00002660"
@@ -18,13 +18,13 @@ grid: dict[int, str] = {
 player_wins: list = []
 cpu_wins: list = []
 start: int = int(input("Welcome to Terminal Tic-Tac-Toe. As the player, you are the Spade. The CPU is the Diamond. "
-                        "To start the game, enter 1: "))
-cpu_list: list = [1, 2, 3, 4, 5, 6, 7, 8, 9]
+                       "To start the game, enter 1: "))
+empty_list: list = [1, 2, 3, 4, 5, 6, 7, 8, 9]
 wins: list = [[1, 2, 3], [4, 5, 6], [7, 8, 9], [1, 4, 7], [2, 5, 8], [3, 6, 9], [1, 5, 9], [3, 5, 7]]
 
 
 def player_turn(grid):
-    move: int = int(input(f"Select an open position ({cpu_list[0]}-{cpu_list[len(cpu_list)-1]}): "))
+    move: int = int(input(f"Select an open position: "))
     if move < 1 or move > 9:
         print("Input out of range. Enter an integer 1-9.")
         player_turn(grid)
@@ -37,69 +37,14 @@ def player_turn(grid):
     else:
         grid[int(move)] = SPADE
         player_wins.append(move)
-        cpu_list.remove(move)
+        empty_list.remove(move)
+
 
 def grid_string():
     thing = f"{grid[1]} {grid[2]} {grid[3]}\n" \
             f"{grid[4]} {grid[5]} {grid[6]}\n" \
             f"{grid[7]} {grid[8]} {grid[9]}"
     return thing
-
-
-def cpu_turn(grid, turn: list):
-    if grid[5] == EMPTY:
-        move = 5
-        cpu_list.remove(move)
-        cpu_wins.append(move)
-        return move
-    elif len(turn) == 1 and grid[5] != EMPTY:
-        corners = [1, 3, 7, 9]
-        for i in corners:
-            if grid[i] == EMPTY:
-                move = i
-        cpu_list.remove(move)
-        cpu_wins.append(move)
-        return move
-    else:
-        for condition in wins:
-            count = 0
-            j = 0
-            temp: list = []
-            cond_temp: list = []
-            for number in condition:
-                found = False
-                while j < len(turn):
-                    if np.sort(turn)[j] == number:
-                        count += 1
-                        temp.append(number)
-                        print(temp)
-                        found = True
-                        j += 1
-                        break
-                    j += 1
-                if found is False:
-                    break
-            if count == 2:
-                cond_temp = condition[:]
-                print(cond_temp)
-                cond_temp.remove(temp[0])
-                cond_temp.remove(temp[1])
-                if grid[cond_temp[0]] == EMPTY:
-                    move = cond_temp[0]
-                    print(cond_temp[0])
-                    cpu_list.remove(move)
-                    cpu_wins.append(move)
-                    return move
-        if turn == cpu_wins:
-            return 15
-        elif turn == player_wins:
-            print("Random")
-            move = np.random.choice(cpu_list)
-            cpu_list.remove(move)
-            cpu_wins.append(move)
-            return move
-
-
 
 
 def win_condition(turn: list) -> bool:
@@ -111,7 +56,6 @@ def win_condition(turn: list) -> bool:
             while j < len(turn):
                 if np.sort(turn)[j] == number:
                     count += 1
-                    print(number)
                     found = True
                     break
                 j += 1
@@ -121,6 +65,71 @@ def win_condition(turn: list) -> bool:
            return True
     return False
 
+
+def minimax(board: dict, empty: list, maximum):
+    # Terminal states, lose, win , tie.
+    if win_condition(player_wins):
+        return -10
+    elif win_condition(cpu_wins):
+        return 10
+    elif len(empty) == 0:
+        return 0
+    else:
+        if maximum is True:
+            best_score = -1000
+            new_board = copy.deepcopy(board)
+            #empties = empty[:]
+            for spot in empty:
+                cpu_wins.append(spot)
+                temp = empty[:]
+                temp.remove(spot)
+                #empties.remove(spot)
+                new_board[spot] = DIAMOND
+                score = minimax(new_board, temp, False)
+                cpu_wins.remove(spot)
+                if score > best_score:
+                    best_score = score
+        else:
+            best_score = 1000
+            new_board = copy.deepcopy(board)
+            #empties = empty[:]
+            for spot in empty:
+                player_wins.append(spot)
+                temp = empty[:]
+                temp.remove(spot)
+                new_board[spot] = SPADE
+                score = minimax(new_board, temp, True)
+                player_wins.remove(spot)
+                if score < best_score:
+                    best_score = score
+        return best_score
+
+
+def cpu_turn(grid, cpu_wins):
+    if len(player_wins) == 0 and len(cpu_wins) == 0:
+        grid[1] = DIAMOND
+        cpu_wins.append(1)
+        empty_list.remove(1)
+    else:
+        best_score = -1000
+        best_move = 0
+
+        score = best_score
+        for spot in empty_list:
+            grid[spot] = DIAMOND
+            cpu_wins.append(spot)
+            temp = empty_list[:]
+            temp.remove(spot)
+            score = minimax(grid, temp, False)
+            grid[spot] = EMPTY
+            cpu_wins.remove(spot)
+            if score > best_score:
+                best_score = score
+                best_move = spot
+        grid[best_move] = DIAMOND
+        cpu_wins.append(best_move)
+        empty_list.remove(best_move)
+        return
 
 def main() -> None:
     first_turn = np.random.choice(np.arange(0, 2))
@@ -136,15 +145,7 @@ def main() -> None:
             turn = player_wins
             first_turn = 1
         elif first_turn == 1:
-            play_check = cpu_turn(grid, cpu_wins)
-            if  play_check != 15:
-                grid[play_check] = DIAMOND
-                print(f"used cpu list move: {play_check}")
-            else:
-                print("switch")
-                cpu_check = cpu_turn(grid, player_wins)
-                grid[cpu_check] = DIAMOND
-                print(f"used player list move: {cpu_check}")
+            cpu_turn(grid, cpu_wins)
             turn = cpu_wins
             first_turn = 0
         print("------------")
